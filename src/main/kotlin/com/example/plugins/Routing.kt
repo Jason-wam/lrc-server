@@ -78,6 +78,32 @@ fun Application.configureRouting() {
     }
 
     routing {
+        get("/delete") {
+            val response = JSONObject()
+            val hash = call.parameters["hash"].orEmpty()
+            if (hash.isBlank()) {
+                LoggerFactory.getLogger("Get").error("Hash can't be blank!")
+                response.put("status", HttpStatusCode.BadRequest.value)
+                response.put("message", "Hash can't be blank!")
+                call.respondText(response.toString(2), ContentType.Application.Json)
+                return@get
+            }
+
+            val lrc = LrcDatabase.instance.delete(hash)
+            if (lrc) {
+                LoggerFactory.getLogger("Get").info("Delete LRC succeed!")
+                response.put("status", 200)
+                response.put("message", "Delete LRC succeed!")
+            } else {
+                LoggerFactory.getLogger("Get").error("LRC not found!")
+                response.put("status", 404)
+                response.put("message", "LRC not found!")
+            }
+            call.respondText(response.toString(2), ContentType.Application.Json)
+        }
+    }
+
+    routing {
         post("/public") {
             val response = JSONObject()
             val parameters = call.receiveParameters()
@@ -113,6 +139,4 @@ fun Application.configureRouting() {
             call.respondText(response.toString(2), ContentType.Application.Json)
         }
     }
-
-
 }

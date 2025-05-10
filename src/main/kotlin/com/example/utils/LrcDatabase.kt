@@ -35,6 +35,18 @@ class LrcDatabase {
         statement.execute("CREATE TABLE IF NOT EXISTS lrc (hash text PRIMARY KEY,songName text,artist text,duration integer,lrcValue text ,time integer)")
     }
 
+    suspend fun delete(hash: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            statement.execute("delete from lrc where hash = '$hash'")
+            LoggerFactory.getLogger("Lrc").info("delete succeed: $hash")
+            return@withContext true
+        } catch (e: Exception) {
+            LoggerFactory.getLogger("Lrc").error("delete error: $hash")
+            LoggerFactory.getLogger("Lrc").error("delete error: ${e.stackTraceToString()}")
+            return@withContext false
+        }
+    }
+
     suspend fun put(artist: String, songName: String, duration: Long = 0, lrcValue: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val hash = (artist + songName + duration).toMd5String()
